@@ -95,6 +95,30 @@ export default function SignIn() {
                                 Sign In
                             </button>
                         </form>
+
+                        {/* Pre-fill Buttons */}
+                        <div className="flex justify-between mt-4">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setUsername('admin');
+                                    setPassword('password123');
+                                }}
+                                className="w-1/2 mr-2 py-3 bg-green-600 text-white font-semibold rounded-md transition duration-300 hover:bg-green-700 focus:ring-2 focus:ring-green-400 focus:outline-none"
+                            >
+                                Admin Credentials (DEMO)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setUsername('staff');
+                                    setPassword('password123');
+                                }}
+                                className="w-1/2 ml-2 py-3 bg-yellow-600 text-white font-semibold rounded-md transition duration-300 hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+                            >
+                                Staff Credentials (DEMO)
+                            </button>
+                        </div>
                     </div>
                 </main>
             </div>

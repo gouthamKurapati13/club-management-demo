@@ -1,67 +1,38 @@
-import { Client } from 'pg';
+import fs from 'fs/promises';
+import path from 'path';
 
-const client = new Client({
-    connectionString: process.env.DB_URL,
-});
-client.connect();
+const historyFilePath = path.join(process.cwd(), 'mock-data', 'history.json');
 
 export async function GET(req, res) {
-    try {
-        const history = await fetchHistoryFromDB();
-        return new Response(JSON.stringify(history), {
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        console.error('Error fetching history:', error);
-        return new Response('Internal Server Error', { status: 500 });
-    }
+    const history = await fetchHistoryFromFile();
+    return new Response(JSON.stringify(history), {
+        headers: { 'Content-Type': 'application/json' },
+    });
 }
 
 export async function POST(req, res) {
-    try {
-        const { boardId, totalPrice, products, staffName, customer } = await req.json();
-        const staffId = await fetchStaffId(staffName);
-        const createdAt = new Date().toISOString();
-        await addHistoryToDB({ boardId, totalPrice: parseInt(totalPrice), products, staffId, customer, createdAt });
-        return new Response(null, { status: 201 });
-    } catch (error) {
-        console.error('Error adding history:', error);
-        return new Response('Internal Server Error', { status: 500 });
-    }
+    const { boardId, totalPrice, products, staffId, customer, createdAt } = await req.json();
+    await addHistoryToFile({ boardId, totalPrice, products, staffId, customer, createdAt });
+    return new Response(null, { status: 201 });
 }
 
 export async function DELETE(req, res) {
-    try {
-        await clearHistoryFromDB();
-        return new Response(null, { status: 204 });
-    } catch (error) {
-        console.error('Error clearing history:', error);
-        return new Response('Internal Server Error', { status: 500 });
-    }
+    await clearHistoryFromFile();
+    return new Response(null, { status: 204 });
 }
 
-async function fetchHistoryFromDB() {
-    const res = await client.query('SELECT * FROM history');
-    return res.rows;
+async function fetchHistoryFromFile() {
+    const data = await fs.readFile(historyFilePath, 'utf-8');
+    return JSON.parse(data);
 }
 
-async function fetchStaffId(staffName) {
-    if (staffName === 'admin') {
-        return 1;
-    }
-    const res = await client.query('SELECT id FROM staff WHERE username = $1 LIMIT 1', [staffName]);
-    return res.rows[0].id;
+async function addHistoryToFile(history) {
+    const histories = await fetchHistoryFromFile();
+    const newHistory = { id: histories.length + 1, ...history };
+    histories.push(newHistory);
+    await fs.writeFile(historyFilePath, JSON.stringify(histories, null, 2));
 }
 
-async function addHistoryToDB(history) {
-    const query = `
-        INSERT INTO history ("boardId", "totalPrice", "products", "staffId", "phoneNo", "createdAt")
-        VALUES ($1, $2, $3, $4, $5, $6)
-    `;
-    const values = [history.boardId, history.totalPrice, history.products, history.staffId, history.customer, history.createdAt];
-    await client.query(query, values);
-}
-
-async function clearHistoryFromDB() {
-    await client.query('DELETE FROM history');
+async function clearHistoryFromFile() {
+    await fs.writeFile(historyFilePath, JSON.stringify([], null, 2));
 }

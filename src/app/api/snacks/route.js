@@ -1,12 +1,10 @@
-import { Client } from 'pg';
+import fs from 'fs/promises';
+import path from 'path';
 
-const client = new Client({
-    connectionString: process.env.DB_URL,
-});
-client.connect();
+const snacksFilePath = path.join(process.cwd(), 'mock-data', 'snacks.json');
 
 export async function GET(req, res) {
-    const snacks = await fetchSnacksFromDB();
+    const snacks = await fetchSnacksFromFile();
     return new Response(JSON.stringify(snacks), {
         headers: { 'Content-Type': 'application/json' },
     });
@@ -14,38 +12,46 @@ export async function GET(req, res) {
 
 export async function POST(req, res) {
     const { name, price } = await req.json();
-    await addSnackToDB({ name, price });
+    await addSnackToFile({ name, price });
     return new Response(null, { status: 201 });
 }
 
 export async function DELETE(req, res) {
-    const id = req.url.split('?id=')[1];
-    await deleteSnackFromDB(id);
+    const id = parseInt(req.url.split('?id=')[1], 10);
+    await deleteSnackFromFile(id);
     return new Response(null, { status: 204 });
 }
 
 export async function PUT(req, res) {
-    const id = req.url.split('?id=')[1];
+    const id = parseInt(req.url.split('?id=')[1], 10);
     const { name, price } = await req.json();
-    await updateSnackInDB(id, { name, price });
+    await updateSnackInFile(id, { name, price });
     return new Response(null, { status: 200 });
 }
 
-async function fetchSnacksFromDB() {
-    const res = await client.query('SELECT * FROM snacks');
-    return res.rows;
+async function fetchSnacksFromFile() {
+    const data = await fs.readFile(snacksFilePath, 'utf-8');
+    return JSON.parse(data);
 }
 
-async function addSnackToDB(snack) {
-    const { name, price } = snack;
-    await client.query('INSERT INTO snacks (name, price) VALUES ($1, $2)', [name, price]);
+async function addSnackToFile(snack) {
+    const snacks = await fetchSnacksFromFile();
+    const newSnack = { id: snacks.length + 1, ...snack };
+    snacks.push(newSnack);
+    await fs.writeFile(snacksFilePath, JSON.stringify(snacks, null, 2));
 }
 
-async function deleteSnackFromDB(id) {
-    await client.query('DELETE FROM snacks WHERE id = $1', [id]);
+async function deleteSnackFromFile(id) {
+    let snacks = await fetchSnacksFromFile();
+    snacks = snacks.filter(snack => snack.id !== id);
+    await fs.writeFile(snacksFilePath, JSON.stringify(snacks, null, 2));
 }
 
-async function updateSnackInDB(id, snack) {
-    const { name, price } = snack;
-    await client.query('UPDATE snacks SET name = $1, price = $2 WHERE id = $3', [name, price, id]);
+async function updateSnackInFile(id, updatedSnack) {
+    const snacks = await fetchSnacksFromFile();
+    const index = snacks.findIndex(snack => snack.id === id);
+    if (index !== -1) {
+        snacks[index] = { ...snacks[index], ...updatedSnack };
+        await fs.writeFile(snacksFilePath, JSON.stringify(snacks, null, 2));
+    }
 }

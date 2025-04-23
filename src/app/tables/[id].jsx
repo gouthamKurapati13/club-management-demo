@@ -14,6 +14,11 @@ export default function TablePage() {
         if (id) {
             fetchTable();
         }
+
+        return () => {
+            // Cleanup timer on component unmount
+            clearInterval(timerRef.current);
+        };
     }, [id]);
 
     const fetchTable = async () => {
@@ -71,6 +76,24 @@ export default function TablePage() {
     const handleStartStop = async () => {
         if (isRunning) {
             clearInterval(timerRef.current);
+
+            // Update startedAt in the backend to null
+            try {
+                const response = await fetch(`/api/boards?id=${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ startedAt: null })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update startedAt in the backend');
+                }
+            } catch (error) {
+                console.error('Error stopping timer:', error.message);
+                return; // Prevent state change if backend update fails
+            }
         } else {
             const startTime = Date.now() - elapsedTime;
             timerRef.current = setInterval(() => {
@@ -80,19 +103,26 @@ export default function TablePage() {
                 setTime(formatTime(elapsed));
             }, 1000);
 
-            // Update startedAt in the database
+            // Update startedAt in the backend
             try {
-                await fetch(`/api/boards?id=${id}`, {
+                const response = await fetch(`/api/boards?id=${id}`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ startedAt: new Date().toISOString() })
                 });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update startedAt in the backend');
+                }
             } catch (error) {
-                console.error('Error updating startedAt:', error.message);
+                console.error('Error starting timer:', error.message);
+                clearInterval(timerRef.current); // Stop the timer if backend update fails
+                return;
             }
         }
+
         setIsRunning(!isRunning);
     };
 

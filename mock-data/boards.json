@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "title": "New Table",
+    "name": "Table Tennis",
+    "price": 100,
+    "startedAt": null,
+    "endedAt": null,
+    "products": null,
+    "totalPrice": 0
+  }
+]

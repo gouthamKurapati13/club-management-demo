@@ -1,15 +1,12 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { Client } from 'pg';
+import fs from 'fs/promises';
+import path from 'path';
 
+const staffFilePath = path.join(process.cwd(), 'mock-data', 'staff.json');
 
-const client = new Client({
-    connectionString: process.env.DB_URL,
-});
-client.connect();
-
-async function fetchStaffFromDB() {
-    const res = await client.query('SELECT * FROM staff');
-    return res.rows;
+async function fetchStaffFromFile() {
+    const data = await fs.readFile(staffFilePath, 'utf-8');
+    return JSON.parse(data);
 }
 
 export const options = {
@@ -29,7 +26,7 @@ export const options = {
                 }
             },
             async authorize(credentials) {
-                const staff = await fetchStaffFromDB();
+                const staff = await fetchStaffFromFile();
                 const users = [
                     { id: "1", name: "admin", password: process.env.ADMIN_PASSWORD, role: "admin" },
                     ...staff.map(s => ({ id: s.id, name: s.username, password: s.password, role: s.role }))

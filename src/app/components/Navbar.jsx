@@ -18,7 +18,7 @@ export default function Navbar() {
         <nav className="bg-white shadow-md p-4 flex justify-between items-center">
             <div className="flex items-center cursor-pointer" onClick={() => window.location.href = '/staff'}>
                 <Image src="/assets/logo.png" alt="Logo" width={50} height={50} />
-                <span className="text-blue-800 text-xl font-semibold ml-2">Club Management</span>
+                <span className="text-blue-800 text-xl font-semibold ml-2">Club Management (DEMO)</span>
             </div>
             <ul className="flex justify-evenly text-xl font-semibold text-blue-800">
                 {/* <li className="mx-4 hover:text-blue-600 transition duration-300 ease-in-out transform hover:scale-105"><Link href="/">Home</Link></li>

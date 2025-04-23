@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "createdAt": "2025-04-23T10:00:00Z",
+    "boardId": 1,
+    "totalPrice": 200,
+    "products": "{\"1\":{\"name\":\"Chips\",\"quantity\":2,\"price\":20}}",
+    "staffId": 1,
+    "customer": "1234567890"
+  }
+]

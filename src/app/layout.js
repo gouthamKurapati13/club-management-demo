@@ -15,6 +15,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/assets/logo.png" />
+      </head>
       <body className={inter.className + ' lg:overflow-hidden'}>
         <AuthProvider>
           <div className='sticky top-0 z-50'>

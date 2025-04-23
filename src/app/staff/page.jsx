@@ -9,15 +9,16 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 export default function ClientPage() {
-    // const { data: session } = useSession({
-    //     required: true,
-    //     onUnauthenticated() {
-    //         redirect('/api/auth/signin?callbackUrl=/client')
-    //     }
-    // })
+    const { data: session } = useSession({
+        required: true,
+        // onUnauthenticated() {
+        //     redirect('/api/auth/signin?callbackUrl=/staff');
+        // }
+    });
 
-    // if (!session?.user) return
-
+    // if (!session?.user || session.user.role !== 'staff') {
+    //     redirect('/denied');
+    // }
 
     const [boards, setBoards] = useState([]);
 
